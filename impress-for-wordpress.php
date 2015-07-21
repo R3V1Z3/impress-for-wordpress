@@ -16,10 +16,7 @@ if ( ! defined( 'ABSPATH' ) ) exit;
 if ( !class_exists( 'ImpressWP' ) ) {
 
 	class ImpressWP {
-	    
-        // keep track of how many times shortcode functions are called
-        // used for determining if main div is rendered and also for incremented id numbering
-        protected $_exec_counter = 0;
+		static $counter=0;
 
 		var $version = '0.1';
 		var $name = 'Impress for WordPress';
@@ -29,24 +26,42 @@ if ( !class_exists( 'ImpressWP' ) ) {
 		var $plugin_url = '';
 
 		function __construct() {
+			$this->counter = 0;
 			//Register Globals
-			$GLOBALS['plugin_dir'] = $this->plugin_dir;	
-			add_shortcode( 'impresswp', array( __CLASS__, 'impress_shortcode' ) );
-			add_filter( 'body_class', 'impresswp_body_class' );
+			$GLOBALS['plugin_dir'] = $this->plugin_dir;
+			add_shortcode( 'impresswp', array( $this, 'impress_shortcode' ) );
+			add_shortcode( 'imstep', array( $this, 'imstep_shortcode' ) );
 		}
-		
-        function impresswp_body_class( $classes ) {
-        	$classes[] = 'impress-not-supported';
-        	return $classes;
-        }
 
-		public function enqueue_scripts(){
-			wp_enqueue_script( 'impressjs', '//netdna.impressjscdn.com/impressjs/0.5.3/js/impress.js' );
+		public function enqueue_scripts() {
 			wp_enqueue_script( 'impress-init', plugins_url( 'js/impress-init.js', __FILE__ ) );
 		}
 
 		static function impress_shortcode( $atts, $content = null ) {
-		    
+			// get shortcode attributes
+			$a = shortcode_atts( array(
+			    'id' => 'impresswp',
+				'width' => '600px',
+				'height' => '400px',
+				'data-min-scale' => '1',
+				'data-max-scale' => '1'
+			), $atts );
+			return self::impress_html( $a, $content);
+		}
+
+		static function impress_html( $a, $content) {
+			// enqueue init script
+			self::enqueue_scripts();
+            $result .= '<iframe id="impress-iframe" style="width:' . $a['width'] . ';height:' . $a['height'] . ';" seamless></iframe>';
+            $result .= '<div id="impress-replace">';
+            $result .= '<div id="impress" data-min-scale="' . $a['data-min-scale'] . '" data-max-scale="' . $a['data-max-scale'] . '">';
+            $result .= apply_filters( 'the_content', $content );
+            $result .= '</div></div>';
+			return $result;
+		}
+		
+		static function imstep_shortcode( $atts, $content = null ) {
+
 			// get shortcode attributes
 			$a = shortcode_atts( array(
 			    'id' => 'not-provided',
@@ -56,40 +71,13 @@ if ( !class_exists( 'ImpressWP' ) ) {
 				'data-rotate' => '0',
 				'data-scale' => '0'
 			), $atts );
-			
-			// render the <div id="impress"> div if not already rendered
-            if($this->_exec_counter === 0) {
-                return render_impress_div( $content );
-            }
 
-            // return <div id=$counter class="step" data-x=$data-x ... >
-			return $this->impress_step_html( $a, $content );
-		}
-
-		public function render_impress_div( $content ) {
-            $this->enqueue_scripts();
-			return $this->impress_div_html( $content );
-		}
-		
-        public function impress_div_html( $content )
-        {
-            $this->_exec_counter += 1;
-    	    $result = '<div class="fallback-message"><p>Your browser <b>doesnt support the features required</b> by impress.js, so you are presented with a simplified version of this presentation.</p><p>For the best experience please use the latest <b>Chrome</b>, <b>Safari</b> or <b>Firefox</b> browser.</p></div>';
-    	    $result .= '<div id="impress">';
-    	    $result .= apply_filters( 'the_content', $content );
-    	    //$result .= do_shortcode( $content );
-    	    $result .= '</div>';
-            return $result;
-        }
-
-		public function impress_step_html( $a, $content ) {
-		    // increment step counter
-		    $this->_exec_counter += 1;
+		    self::$counter += 1;
 		    // render step div based on user provided args
 		    $result = '<div class="step"';
 		    // if user doesn't provide id, use counter
 		    if ($a['id'] == 'not-provided')
-		        $result .= ' id=step-"' . $this->_exec_counter . '"';
+		        $result .= ' id=step-"' . self::$counter . '"';
 		    else
 		        $result .= ' id="' . $a['id'] . '"';
 		    $result .= ' data-x="' . $a['data-x'] . '"';
