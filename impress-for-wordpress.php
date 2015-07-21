@@ -40,11 +40,11 @@ if ( !class_exists( 'ImpressWP' ) ) {
 		static function impress_shortcode( $atts, $content = null ) {
 			// get shortcode attributes
 			$a = shortcode_atts( array(
-			    'id' => 'impresswp',
+			    'class' => 'myclass',
 				'width' => '600px',
 				'height' => '400px',
-				'data-min-scale' => '1',
-				'data-max-scale' => '1'
+				'min_scale' => '1',
+				'max_scale' => '1'
 			), $atts );
 			return self::impress_html( $a, $content);
 		}
@@ -54,7 +54,14 @@ if ( !class_exists( 'ImpressWP' ) ) {
 			self::enqueue_scripts();
             $result .= '<iframe id="impress-iframe" style="width:' . $a['width'] . ';height:' . $a['height'] . ';" seamless></iframe>';
             $result .= '<div id="impress-replace">';
-            $result .= '<div id="impress" data-min-scale="' . $a['data-min-scale'] . '" data-max-scale="' . $a['data-max-scale'] . '">';
+            // add all queued styles to iframe
+            global $wp_styles;
+			foreach( $wp_styles->queue as $handle ) {
+			        $obj = $wp_styles->registered [$handle];
+			        $filename = $obj->src;
+			        $result .= '<link rel="stylesheet" property="stylesheet" href="' . $filename . '">';
+         	}
+            $result .= '<div id="impress" class="' . $a['class'] . '" data-min-scale="' . $a['min_scale'] . '" data-max-scale="' . $a['max_scale'] . '">';
             $result .= apply_filters( 'the_content', $content );
             $result .= '</div></div>';
 			return $result;
@@ -64,27 +71,28 @@ if ( !class_exists( 'ImpressWP' ) ) {
 
 			// get shortcode attributes
 			$a = shortcode_atts( array(
-			    'id' => 'not-provided',
-				'data-x' => '0',
-				'data-y' => '0',
-				'data-z' => '0',
-				'data-rotate' => '0',
-				'data-scale' => '0'
+			    'id' => '',
+			    'class' => 'step slide',
+				'x' => '0',
+				'y' => '0',
+				'z' => '0',
+				'rotate' => '0',
+				'scale' => '1'
 			), $atts );
 
 		    self::$counter += 1;
 		    // render step div based on user provided args
-		    $result = '<div class="step"';
+		    $result = '<div class="' . $a['class'] . '"';
 		    // if user doesn't provide id, use counter
-		    if ($a['id'] == 'not-provided')
-		        $result .= ' id=step-"' . self::$counter . '"';
+		    if ($a['id'] == '')
+		        $result .= ' id="step-' . self::$counter . '"';
 		    else
 		        $result .= ' id="' . $a['id'] . '"';
-		    $result .= ' data-x="' . $a['data-x'] . '"';
-		    $result .= ' data-y="' . $a['data-y'] . '"';
-		    $result .= ' data-z="' . $a['data-z'] . '"';
-		    $result .= ' data-rotate="' . $a['data-rotate'] . '"';
-		    $result .= ' data-scale="' . $a['data-scale'] . '"';
+		    $result .= ' data-x="' . $a['x'] . '"';
+		    $result .= ' data-y="' . $a['y'] . '"';
+		    $result .= ' data-z="' . $a['z'] . '"';
+		    $result .= ' data-rotate="' . $a['rotate'] . '"';
+		    $result .= ' data-scale="' . $a['scale'] . '"';
 		    $result .= '>';
 		    $result .= apply_filters( 'the_content', $content );
 		    $result .= '</div>';
