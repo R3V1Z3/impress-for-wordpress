@@ -42,6 +42,7 @@ if ( !class_exists( 'ImpressWP' ) ) {
 
 		public function enqueue_scripts(){
 			wp_enqueue_script( 'impressjs', '//netdna.impressjscdn.com/impressjs/0.5.3/js/impress.js' );
+			wp_enqueue_script( 'impress-init', plugins_url( 'js/impress-init.js', __FILE__ ) );
 		}
 
 		static function impress_shortcode( $atts, $content = null ) {
@@ -81,7 +82,7 @@ if ( !class_exists( 'ImpressWP' ) ) {
             return $result;
         }
 
-		static function impress_step_html( $a, $content ) {
+		public function impress_step_html( $a, $content ) {
 		    // increment step counter
 		    $this->_exec_counter += 1;
 		    // render step div based on user provided args
