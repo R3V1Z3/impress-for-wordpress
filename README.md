@@ -23,13 +23,13 @@ This plugin works the same way but with a shortcode for the impress div:
 Or you can use step shortcodes like so:
 ```html
 [impresswp]
-[imstep x="2825" y="2325" z="-3000" rotate="300" scale="1"]
+[slide x="2825" y="2325" z="-3000" rotate="300" scale="1"]
 <p>This is my WordPress content. I can add whatever content I want here.</p>
-[/imstep]
+[/slide]
 [/impresswp]
 ```
 
-There are two benefits of using the [imstep] shortcodes, the first being that you won't need to switch to Text mode in the visual editor to add them (divs can only feasibly be added/edited through Text mode).
+There are two benefits of using the [slide] shortcodes, the first being that you won't need to switch to Text mode in the visual editor to add them (divs can only feasibly be added/edited through Text mode).
 
 The main benefit though, it can auto-increment the ids so you don't need to create unique ids yourself. Though you can always specify an id attribute if you want to use a custom id still.
 
